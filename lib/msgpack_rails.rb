@@ -49,7 +49,15 @@ if defined?(::Rails)
         ::Mime::Type.register "application/x-msgpack", :msgpack
         ::ActionController::Renderers.add :msgpack do |item, options|
           self.content_type ||= Mime::MSGPACK
-          item.respond_to?(:to_msgpack) ? item.to_msgpack : item
+          #todo if it is a string, how to detect wether we should to_msgpack it or not?
+          # for now, only no-msgpack the actual packer objects
+          if item.is_a?(MessagePack::Packer) || item.is_a?(MessagePack::Buffer)
+            item.to_str
+          elsif item.respond_to?(:to_msgpack)
+            item.to_msgpack
+          else
+            item
+          end
         end
 
       end
